@@ -207,7 +207,7 @@ defmodule Ecto.MigratorTest do
     module = ExecuteOneAnonymousFunctionMigration
     num = System.unique_integer([:positive])
     capture_log(fn -> :ok = up(TestRepo, num, module, [log: false]) end)
-    message = "no function clause matching in Ecto.Migration.Runner.command/1"
+    message = "no function clause matching in Ecto.Migration.DDL.execute/1"
     assert_raise(FunctionClauseError, message, fn -> down(TestRepo, num, module, [log: false]) end)
   end
 

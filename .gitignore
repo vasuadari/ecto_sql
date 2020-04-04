@@ -4,3 +4,5 @@
 /doc
 /tmp
 erl_crash.dump
+
+*.swp

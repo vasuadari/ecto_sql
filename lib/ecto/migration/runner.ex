@@ -4,6 +4,7 @@ defmodule Ecto.Migration.Runner do
 
   require Logger
 
+  alias Ecto.Migration.DDL
   alias Ecto.Migration.Table
   alias Ecto.Migration.Index
   alias Ecto.Migration.Constraint
@@ -352,48 +353,7 @@ defmodule Ecto.Migration.Runner do
   defp log(false, _msg), do: :ok
   defp log(level, msg),  do: Logger.log(level, msg)
 
-  defp command(ddl) when is_binary(ddl) or is_list(ddl),
-    do: "execute #{inspect ddl}"
-
-  defp command({:create, %Table{} = table, _}),
-    do: "create table #{quote_name(table.prefix, table.name)}"
-  defp command({:create_if_not_exists, %Table{} = table, _}),
-    do: "create table if not exists #{quote_name(table.prefix, table.name)}"
-  defp command({:alter, %Table{} = table, _}),
-    do: "alter table #{quote_name(table.prefix, table.name)}"
-  defp command({:drop, %Table{} = table}),
-    do: "drop table #{quote_name(table.prefix, table.name)}"
-  defp command({:drop_if_exists, %Table{} = table}),
-    do: "drop table if exists #{quote_name(table.prefix, table.name)}"
-
-  defp command({:create, %Index{} = index}),
-    do: "create index #{quote_name(index.prefix, index.name)}"
-  defp command({:create_if_not_exists, %Index{} = index}),
-    do: "create index if not exists #{quote_name(index.prefix, index.name)}"
-  defp command({:drop, %Index{} = index}),
-    do: "drop index #{quote_name(index.prefix, index.name)}"
-  defp command({:drop_if_exists, %Index{} = index}),
-    do: "drop index if exists #{quote_name(index.prefix, index.name)}"
-  defp command({:rename, %Table{} = current_table, %Table{} = new_table}),
-    do: "rename table #{quote_name(current_table.prefix, current_table.name)} to #{quote_name(new_table.prefix, new_table.name)}"
-  defp command({:rename, %Table{} = table, current_column, new_column}),
-    do: "rename column #{current_column} to #{new_column} on table #{quote_name(table.prefix, table.name)}"
-
-  defp command({:create, %Constraint{check: nil, exclude: nil}}),
-    do: raise ArgumentError, "a constraint must have either a check or exclude option"
-  defp command({:create, %Constraint{check: check, exclude: exclude}}) when is_binary(check) and is_binary(exclude),
-    do: raise ArgumentError, "a constraint must not have both check and exclude options"
-  defp command({:create, %Constraint{check: check} = constraint}) when is_binary(check),
-    do: "create check constraint #{constraint.name} on table #{quote_name(constraint.prefix, constraint.table)}"
-  defp command({:create, %Constraint{exclude: exclude} = constraint}) when is_binary(exclude),
-    do: "create exclude constraint #{constraint.name} on table #{quote_name(constraint.prefix, constraint.table)}"
-  defp command({:drop, %Constraint{} = constraint}),
-    do: "drop constraint #{constraint.name} from table #{quote_name(constraint.prefix, constraint.table)}"
-  defp command({:drop_if_exists, %Constraint{} = constraint}),
-    do: "drop constraint if exists #{constraint.name} from table #{quote_name(constraint.prefix, constraint.table)}"
-
-  defp quote_name(nil, name), do: quote_name(name)
-  defp quote_name(prefix, name), do: quote_name(prefix) <> "." <> quote_name(name)
-  defp quote_name(name) when is_atom(name), do: quote_name(Atom.to_string(name))
-  defp quote_name(name), do: name
+  defp command(command) do
+    DDL.execute(command)
+  end
 end
